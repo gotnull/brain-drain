@@ -21,8 +21,14 @@ import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.legend import Legend  # noqa: E402
-from matplotlib.text import Text  # noqa: E402
+
+# The layout/readability checker is shared with the blog repo so every project
+# enforces the same rules. Single source of truth, no drifting copies.
+_CHECKER = os.path.expanduser("~/development/gotnull.com/blog/scripts")
+if not os.path.isfile(os.path.join(_CHECKER, "figure_check.py")):
+    raise SystemExit(f"figure_check.py not found in {_CHECKER}")
+sys.path.insert(0, _CHECKER)
+from figure_check import assert_layout_is_clean  # noqa: E402
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..",
                                 "experiments", "02_raw_packets"))
@@ -39,74 +45,6 @@ ACCENT = "#e8a13c"
 ACCENT2 = "#5ec8c8"
 ACCENT3 = "#d4754a"
 
-# Minimum clear space between any two pieces of text, in points.
-TEXT_PAD_PT = 2.0
-
-
-def _boxes(fig):
-    """Rendered bounding boxes of every visible text artist and legend."""
-    r = fig.canvas.get_renderer()
-    out = []
-    for ax in fig.axes:
-        artists = [ax.title, ax.xaxis.label, ax.yaxis.label]
-        artists += ax.get_xticklabels() + ax.get_yticklabels()
-        artists += [c for c in ax.get_children()
-                    if isinstance(c, Text) and c not in artists]
-        for a in artists:
-            if not a.get_visible() or not a.get_text().strip():
-                continue
-            try:
-                out.append((f"{type(a).__name__}:{a.get_text()[:30]!r}",
-                            a.get_window_extent(renderer=r)))
-            except Exception:  # noqa: BLE001
-                pass
-        leg = ax.get_legend()
-        if leg is not None and leg.get_visible():
-            out.append(("legend", leg.get_window_extent(renderer=r)))
-    return out
-
-
-def assert_layout_is_clean(fig, name):
-    """
-    Fail loudly if any two text boxes overlap, or if a legend covers a data
-    point. Non-negotiable: a figure that ships must be readable.
-    """
-    fig.canvas.draw()
-    boxes = _boxes(fig)
-
-    problems = []
-    for i in range(len(boxes)):
-        for j in range(i + 1, len(boxes)):
-            (n1, b1), (n2, b2) = boxes[i], boxes[j]
-            pad = TEXT_PAD_PT
-            if (b1.x0 - pad < b2.x1 and b2.x0 - pad < b1.x1
-                    and b1.y0 - pad < b2.y1 and b2.y0 - pad < b1.y1):
-                problems.append(f"text overlaps text: {n1} vs {n2}")
-
-    r = fig.canvas.get_renderer()
-    for ax in fig.axes:
-        leg = ax.get_legend()
-        if leg is None or not leg.get_visible():
-            continue
-        lb = leg.get_window_extent(renderer=r)
-        for line in ax.get_lines():
-            xd, yd = line.get_data()
-            for x, y in zip(xd, yd):
-                px, py = ax.transData.transform((x, y))
-                if lb.x0 <= px <= lb.x1 and lb.y0 <= py <= lb.y1:
-                    problems.append(
-                        f"legend covers a data point at ({x:.6g}, {y:.6g})")
-                    break
-            else:
-                continue
-            break
-
-    if problems:
-        raise SystemExit(f"FIGURE LAYOUT FAILED for {name}:\n  "
-                         + "\n  ".join(problems))
-    print(f"  layout clean: {len(boxes)} text boxes, no overlaps")
-
-
 def style(ax):
     ax.set_facecolor(BG)
     for s in ax.spines.values():
@@ -114,7 +52,10 @@ def style(ax):
     ax.tick_params(colors=MUTED, labelsize=9)
     ax.xaxis.label.set_color(MUTED)
     ax.yaxis.label.set_color(MUTED)
-    ax.title.set_color(FG)
+    for attr in ("title", "_left_title", "_right_title"):
+        t = getattr(ax, attr, None)
+        if t is not None:
+            t.set_color(FG)
     ax.grid(True, color=GRID, linewidth=0.6, alpha=0.6)
     ax.set_axisbelow(True)
 
@@ -128,7 +69,7 @@ def fig_counter(payloads, decoded, out):
     a1.plot(range(n), [p[0] for p in payloads[:n]], ".", color=ACCENT3,
             markersize=3.4)
     a1.set_title("Byte 0 of each packet, as it arrives over USB", fontsize=11,
-                 loc="left", pad=9)
+                 loc="left", pad=9, color=FG)
     a1.set_ylabel("value")
     a1.set_ylim(-12, 268)
     style(a1)
@@ -148,14 +89,14 @@ def fig_counter(payloads, decoded, out):
                     color=ACCENT, fontsize=9,
                     arrowprops=dict(arrowstyle="-", color=ACCENT, lw=1.0))
     a2.set_title("The same byte after AES-128-ECB decryption", fontsize=11,
-                 loc="left", pad=9)
+                 loc="left", pad=9, color=FG)
     a2.set_ylabel("value")
     a2.set_xlabel("packet number")
     a2.set_ylim(-12, 300)
     style(a2)
 
     fig.tight_layout(pad=1.4, h_pad=2.2)
-    assert_layout_is_clean(fig, os.path.basename(out))
+    assert_layout_is_clean(fig, os.path.basename(out), bg=BG)
     fig.savefig(out, dpi=170, facecolor=BG)
     print("wrote", out)
 
@@ -185,11 +126,11 @@ def fig_keys(payloads, sn, out):
                 color=FG if s > 90 else MUTED)
     ax.set_xlabel("packets whose counter advances by exactly one (percent)")
     ax.set_title("Five documented key layouts, scored on 1000 real packets",
-                 fontsize=11, loc="left", pad=9)
+                 fontsize=11, loc="left", pad=9, color=FG)
     style(ax)
     ax.grid(axis="y", visible=False)
     fig.tight_layout(pad=1.4)
-    assert_layout_is_clean(fig, os.path.basename(out))
+    assert_layout_is_clean(fig, os.path.basename(out), bg=BG)
     fig.savefig(out, dpi=170, facecolor=BG)
     print("wrote", out)
 

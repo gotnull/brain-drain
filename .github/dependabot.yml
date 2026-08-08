@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Australia/Melbourne
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    groups:
+      # One PR for the plotting stack rather than a PR per transitive package.
+      plotting:
+        patterns:
+          - "matplotlib"
+          - "numpy"
+          - "pillow"
+          - "fonttools"
+          - "contourpy"
+          - "kiwisolver"
+          - "cycler"
+          - "pyparsing"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Australia/Melbourne
+    commit-message:
+      prefix: "ci"

@@ -1,0 +1,11 @@
+# Direct dependencies. Minimums, not pins, so Dependabot can propose upgrades.
+#
+# hidapi        talking to the EMOTIV receiver. The only way in on macOS, which
+#               binds its own driver to HID interfaces and will not let libusb
+#               claim them.
+# cryptography  AES-128-ECB to decrypt the 32-byte packets.
+# matplotlib    figures for docs and the blog. Not needed to capture or decode.
+
+hidapi>=0.15.0
+cryptography>=50.0.0
+matplotlib>=3.11.1
