@@ -1,3 +1,8 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Borrowed hardware: captures carry the device serial in their metadata,
+# and LOCAL-DEVICE.md holds the serial and derived key. Neither is published.
+captures/
+LOCAL-DEVICE.md

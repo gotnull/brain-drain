@@ -54,8 +54,7 @@ The serial is available directly as the USB `iSerialNumber` string.
 | Key length | 16 bytes | CONFIRMED |
 | Key source | last four characters of the USB serial | CONFIRMED |
 
-For serial `SN20REDACTED0000`: `sn[-1] redacted` (0x4D), `sn[-2] redacted` (0x47),
-`sn[-3] redacted` (0x38), `sn[-4] redacted` (0x38).
+For serial `SN20REDACTED0000`: the last four characters, values withheld.
 
 **The key for this device, CONFIRMED:**
 

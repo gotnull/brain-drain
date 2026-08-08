@@ -31,9 +31,9 @@ serial `SN20REDACTED0000`. Set against the literature:
 | python-emotiv special-cases `product_id == 0x0001` as a "consumer" headset | PID is `0x0001` | Consistent. A `0x0001` PID is a known EMOTIV variant. |
 | Emokit deliberately matches on name strings, not PID, because IDs vary | n/a | Corroborates that VID/PID varies by revision. Do not treat `1234:ED02` as canonical. |
 | Classic report is 32 bytes; EPOC+ 2016 and later is 64 bytes | descriptor declares **32-byte** input report | Consistent with **classic EPOC**, not EPOC+ 2016+. |
-| Serial format `SN` + `YYYYMMDD` + 6 chars (example `SN20120229000459`) | same shape, 16 chars, values withheld | **Exact structural match.** Supports a 22nd August 2013 build date. |
+| Serial format `SN` + `YYYYMMDD` + 6 chars (example `SN20120229000459`) | same shape, 16 chars, date field withheld | **Exact structural match.** Supports a 2013 build date. |
 | Serials beginning `UD2016` route to the EPOC+ key derivation | ours begins `SN`, not `UD2016` | The **classic** key derivation is the one to try first. |
-| AES key uses only the last four serial characters | last four withheld | So `sn[-1] redacted`, `sn[-2] redacted`, `sn[-3] redacted`, `sn[-4] redacted`. |
+| AES key uses only the last four serial characters | ours are withheld from this repo | The four characters and the derived key are kept out of version control. |
 
 Working position: this is most likely a **classic EPOC** (14 channels, 128 SPS,
 14-bit), on a later-VID dongle revision. STRONGLY INFERRED. It is not settled
@@ -453,8 +453,7 @@ applies.**
 
 1. Does our `21a1:0001` dongle actually emit 32-byte reports at 128 Hz? The
    descriptor says 32 bytes. Unverified until packets flow.
-2. Which key variant decrypts our stream, given serial characters `8`, `8`,
-   `G`, `M`? To be settled by generating all candidates and testing.
+2. Which key variant decrypts our stream, given the last four serial characters? To be settled by generating all candidates and testing.
 3. Is our headset genuinely 14-channel classic EPOC? Decode will tell us.
 4. What is interface 0's 3-byte report for? No source describes it. Our device
    has a documented interface the literature does not cover.

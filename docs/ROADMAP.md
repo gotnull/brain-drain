@@ -93,9 +93,9 @@ encryption from our own data before any key was tried. See LAB_NOTES LN-008.
 
 ### Part A - decryption  `PASSED`
 
-All five documented key layouts were generated from serial characters `8`, `8`,
-`G`, `M` and tested against 1000 real packets. No implementation was trusted;
-the data chose.
+All five documented key layouts were generated from the last four characters of
+the dongle serial and tested against 1000 real packets. No implementation was
+trusted; the data chose.
 
 | Candidate | Counter consistency |
 |---|---|
