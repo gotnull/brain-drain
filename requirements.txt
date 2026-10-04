@@ -7,5 +7,5 @@
 # matplotlib    figures for docs and the blog. Not needed to capture or decode.
 
 hidapi>=0.15.0
-cryptography>=50.0.0
+cryptography>=50.0.2
 matplotlib>=3.11.1
